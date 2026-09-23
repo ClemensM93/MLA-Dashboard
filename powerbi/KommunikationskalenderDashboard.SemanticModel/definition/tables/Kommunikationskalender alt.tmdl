@@ -1,0 +1,128 @@
+table 'Kommunikationskalender alt'
+
+	measure 'Anzahl Kommunikationen' = COUNTROWS ( 'Kommunikationskalender alt' )
+
+	measure 'Anzahl Formate' = DISTINCTCOUNT ( 'Kommunikationskalender alt'[Format] )
+
+	measure 'Kommunikationen YTD' = TOTALYTD ( [Anzahl Kommunikationen], 'Kalender'[Datum] )
+
+	measure 'Kommunikationen diesen Monat' = CALCULATE ( [Anzahl Kommunikationen], FILTER ( ALL ( 'Kalender' ), 'Kalender'[Jahr] = YEAR ( TODAY () ) && 'Kalender'[MonatNr] = MONTH ( TODAY () ) ) )
+
+	measure 'Kommunikationen Vormonat' = CALCULATE ( [Anzahl Kommunikationen], FILTER ( ALL ( 'Kalender' ), 'Kalender'[Jahr] = YEAR ( EDATE ( TODAY (), -1 ) ) && 'Kalender'[MonatNr] = MONTH ( EDATE ( TODAY (), -1 ) ) ) )
+
+	measure 'Veraenderung ggue Vormonat' = [Kommunikationen diesen Monat] - [Kommunikationen Vormonat]
+
+	measure 'Veraenderung ggue Vormonat %' = IF ( [Kommunikationen Vormonat] = 0, BLANK (), DIVIDE ( [Kommunikationen diesen Monat] - [Kommunikationen Vormonat], [Kommunikationen Vormonat] ) )
+		formatString: 0.0 %;-0.0 %;0.0 %
+
+	measure 'Kommunikationen naechste 30 Tage' = CALCULATE ( [Anzahl Kommunikationen], FILTER ( ALL ( 'Kalender' ), 'Kalender'[Datum] >= TODAY () && 'Kalender'[Datum] <= TODAY () + 30 ) )
+
+	measure 'Kommunikationen kommende (ab heute)' = CALCULATE ( [Anzahl Kommunikationen], FILTER ( ALL ( 'Kalender' ), 'Kalender'[Datum] >= TODAY () ) )
+
+	measure 'Kommunikationen vergangen' = CALCULATE ( [Anzahl Kommunikationen], FILTER ( ALL ( 'Kalender' ), 'Kalender'[Datum] < TODAY () ) )
+
+	measure 'Haeufigstes Format' = MAXX ( TOPN ( 1, ADDCOLUMNS ( VALUES ( 'Kommunikationskalender alt'[Format] ), "@Anzahl", [Anzahl Kommunikationen] ), [@Anzahl], DESC ), 'Kommunikationskalender alt'[Format] )
+
+	measure 'Anteil je Format %' = DIVIDE ( [Anzahl Kommunikationen], CALCULATE ( [Anzahl Kommunikationen], ALL ( 'Kommunikationskalender alt'[Format] ) ) )
+		formatString: 0.0 %;-0.0 %;0.0 %
+
+	measure 'Naechste Kommunikation' = IF ( ISBLANK ( CALCULATE ( MIN ( 'Kommunikationskalender alt'[Event Date] ), FILTER ( 'Kommunikationskalender alt', 'Kommunikationskalender alt'[Event Date] >= TODAY () ) ) ), "Keine geplante Kommunikation", FORMAT ( CALCULATE ( MIN ( 'Kommunikationskalender alt'[Event Date] ), FILTER ( 'Kommunikationskalender alt', 'Kommunikationskalender alt'[Event Date] >= TODAY () ) ), "DD.MM.YYYY" ) & "  -  " & CALCULATE ( SELECTEDVALUE ( 'Kommunikationskalender alt'[Title] ), FILTER ( 'Kommunikationskalender alt', 'Kommunikationskalender alt'[Event Date] = CALCULATE ( MIN ( 'Kommunikationskalender alt'[Event Date] ), FILTER ( 'Kommunikationskalender alt', 'Kommunikationskalender alt'[Event Date] >= TODAY () ) ) ) ) )
+
+	measure 'Titel dynamisch' = "Kommunikationskalender  |  Stand: " & FORMAT ( TODAY (), "DD.MM.YYYY" )
+
+	measure 'Farbe Format' = SWITCH ( SELECTEDVALUE ( 'Kommunikationskalender alt'[Format] ), "Newsletter", "#0072CE", "Event", "#2E7D32", "Social Media", "#F9A825", "Mailing", "#6A1B9A", "#9E9E9E" )
+
+	// --- Wirkungskennzahlen (Mockup-Stil) -----------------------------------
+	measure 'Sichtbarkeit gesamt' = SUM ( 'Kommunikationskalender alt'[Sichtbarkeit] )
+		formatString: #,0
+
+	measure 'Resonanz Durchschnitt' = AVERAGE ( 'Kommunikationskalender alt'[Resonanz] )
+		formatString: 0.0
+
+	measure 'Aktivierung Durchschnitt' = AVERAGE ( 'Kommunikationskalender alt'[Aktivierung] )
+		formatString: 0.0
+
+	measure 'Wirksamkeit Durchschnitt' = AVERAGE ( 'Kommunikationskalender alt'[Wirksamkeit] )
+		formatString: 0.0
+
+	column 'Event Date'
+		dataType: dateTime
+		formatString: General Date
+		summarizeBy: none
+		sourceColumn: Event Date
+
+	column 'End Time'
+		dataType: dateTime
+		formatString: General Date
+		summarizeBy: none
+		sourceColumn: End Time
+
+	column Format
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Format
+
+	column Title
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Title
+
+	column ID
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: ID
+
+	column EventDatum
+		dataType: dateTime
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: EventDatum
+
+	column Kommend = 'Kommunikationskalender alt'[Event Date] >= TODAY ()
+		dataType: boolean
+		lineageTag: a5f11068-20b4-4075-bdc9-07f6013cf473
+		summarizeBy: none
+
+	column Sichtbarkeit
+		dataType: double
+		formatString: #,0
+		lineageTag: 3c1b8a10-0001-4a10-9a01-000000000001
+		summarizeBy: sum
+		sourceColumn: Sichtbarkeit
+
+	column Resonanz
+		dataType: double
+		formatString: 0.0
+		lineageTag: 3c1b8a10-0001-4a10-9a01-000000000002
+		summarizeBy: average
+		sourceColumn: Resonanz
+
+	column Aktivierung
+		dataType: double
+		formatString: 0.0
+		lineageTag: 3c1b8a10-0001-4a10-9a01-000000000003
+		summarizeBy: average
+		sourceColumn: Aktivierung
+
+	column Wirksamkeit
+		dataType: double
+		formatString: 0.0
+		lineageTag: 3c1b8a10-0001-4a10-9a01-000000000004
+		summarizeBy: average
+		sourceColumn: Wirksamkeit
+
+	partition 'Kommunikationskalender alt' = m
+		mode: import
+		source =
+				let
+				Quelle = SharePoint.Tables("https://porsche.sharepoint.com/sites/TeamsMEE150", [Implementation = "2.0", ViewMode = "All"]),
+				Liste = Quelle{[Title = "Veranstaltungskalender"]}[Items],
+				// Metrikspalten Sichtbarkeit/Resonanz/Aktivierung/Wirksamkeit werden nur uebernommen, wenn sie in der Liste existieren.
+				Behalten = Table.SelectColumns(Liste, {"Event Date", "End Time", "Format", "Title", "ID", "Sichtbarkeit", "Resonanz", "Aktivierung", "Wirksamkeit"}, MissingField.Ignore),
+				MitEventDatum = Table.AddColumn(Behalten, "EventDatum", each Date.From([Event Date]), type date),
+				MetrikTypen = List.Select({{"Sichtbarkeit", type number}, {"Resonanz", type number}, {"Aktivierung", type number}, {"Wirksamkeit", type number}}, each Table.HasColumns(MitEventDatum, {_{0}})),
+				MitTypen = Table.TransformColumnTypes(MitEventDatum, MetrikTypen)
+				in
+				MitTypen
+

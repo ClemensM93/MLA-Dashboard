@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Akademie – Dashboard-Mockup</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --porsche-blue:#0072CE; --ink:#1A1A1A; --bg:#F4F5F7; --card:#FFFFFF;
+    --green:#2E7D32; --yellow:#C9A227; --purple:#6A1B9A; --red:#C62828; --teal:#0097A7;
+    --muted:#6b7280; --border:#e6e8eb; --shadow:0 2px 10px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:"Segoe UI","Porsche Next",system-ui,-apple-system,sans-serif; background:var(--bg); color:var(--ink); }
+  .wrap { max-width:1320px; margin:0 auto; padding:24px; }
+
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 22px; box-shadow:var(--shadow); margin-bottom:16px; }
+  .brand { display:flex; align-items:center; gap:14px; }
+  .brand .bar { width:6px; height:42px; background:var(--porsche-blue); border-radius:4px; }
+  .brand h1 { font-size:20px; margin:0; }
+  .brand .sub { font-size:13px; color:var(--muted); margin-top:2px; }
+  .filters { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .filters label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.5px; margin-right:-4px; }
+  select { appearance:none;
+    background:#fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>") no-repeat right 10px center;
+    border:1px solid var(--border); border-radius:10px; padding:9px 34px 9px 12px; font-size:13px; color:var(--ink); cursor:pointer; max-width:230px; }
+
+  .tabs { display:flex; gap:6px; margin-bottom:20px; }
+  .tab { padding:11px 20px; border-radius:10px 10px 0 0; background:transparent; border:1px solid transparent; border-bottom:none;
+    font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; }
+  .tab.active { background:var(--card); color:var(--porsche-blue); border-color:var(--border); box-shadow:var(--shadow); }
+  .page { display:none; } .page.active { display:block; }
+  .cal-only, .srv-only { display:flex; gap:10px; align-items:center; }
+
+  .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:20px; }
+  .kpi { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); position:relative; overflow:hidden; }
+  .kpi::before { content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--porsche-blue); }
+  .kpi.k-sicht::before{background:var(--porsche-blue);} .kpi.k-res::before{background:var(--teal);}
+  .kpi.k-wirk::before{background:var(--green);}
+  .kpi.k-in::before{background:var(--teal);} .kpi.k-out::before{background:var(--green);} .kpi.k-delta::before{background:var(--purple);}
+  .kpi .label { font-size:12.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .kpi .value { font-size:32px; font-weight:700; margin-top:6px; line-height:1; }
+  .kpi .value small { font-size:15px; color:var(--muted); font-weight:600; }
+  .kpi .delta { font-size:12.5px; margin-top:8px; font-weight:600; }
+  .delta.up{color:var(--green);} .delta.down{color:var(--red);} .delta.neutral{color:var(--muted);}
+
+  .grid { display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:20px; }
+  .grid.even { grid-template-columns:1fr 1fr; }
+  .panel { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px 20px; box-shadow:var(--shadow); }
+  .panel h2 { font-size:15px; margin:0 0 4px; }
+  .panel .hint { font-size:12px; color:var(--muted); margin:0 0 12px; }
+  .chart-box { position:relative; height:300px; }
+
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th, td { text-align:left; padding:9px 8px; border-bottom:1px solid var(--border); }
+  th { font-size:11.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--muted); }
+  tr:last-child td { border-bottom:none; }
+  td.num { text-align:center; font-variant-numeric:tabular-nums; }
+  .badge { display:inline-block; padding:3px 9px; border-radius:999px; font-size:11.5px; font-weight:600; color:#fff; white-space:nowrap; }
+  .date-cell { font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .pill { display:inline-block; min-width:38px; text-align:center; padding:3px 7px; border-radius:8px; font-weight:600; font-size:12px; color:#fff; }
+  .arrow { font-size:12px; font-weight:600; }
+  .arrow.up{color:var(--green);} .arrow.down{color:var(--red);} .arrow.flat{color:var(--muted);}
+  .muted { color:var(--muted); }
+  .footer-note { font-size:12px; color:var(--muted); text-align:center; margin-top:8px; }
+
+  @media (max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr);} .grid,.grid.even{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="bar"></div>
+      <div>
+        <h1>Akademie Dashboard</h1>
+        <div class="sub">Stand: 23.09.2026 · Mockup mit Beispieldaten nach echter Feldstruktur</div>
+      </div>
+    </div>
+    <div class="filters">
+      <div class="cal-only">
+        <label>Format</label>
+        <select id="fFormat">
+          <option value="">Alle Formate</option>
+          <option>Postings</option><option>Carrera Online Artikel</option>
+          <option>Veranstaltung</option><option>Impuls</option>
+        </select>
+        <label>Zeit</label>
+        <select id="fZeitraum"><option value="">Jahr 2026</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select>
+      </div>
+      <div class="srv-only" style="display:none;">
+        <label>Impuls</label>
+        <select id="fThema"><option value="">Alle Impulsvorträge</option></select>
+        <label>Frage</label>
+        <select id="fFrage"><option value="">Alle Check-out-Fragen (Ø)</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-page="p-kalender">Kommunikationskalender</button>
+    <button class="tab" data-page="p-befragung">Befragungen (Check-in / Check-out)</button>
+  </div>
+
+  <!-- ============ SEITE 1: KALENDER ============ -->
+  <div class="page active" id="p-kalender">
+    <div class="kpis">
+      <div class="kpi"><div class="label">Beiträge gesamt</div><div class="value" id="kpiGesamt">0</div><div class="delta neutral" id="kpiKommend">0 kommend</div></div>
+      <div class="kpi k-sicht"><div class="label">Σ Sichtbarkeit (Reichweite)</div><div class="value" id="kpiSicht">0</div><div class="delta neutral">Summe aller Beiträge</div></div>
+      <div class="kpi k-res"><div class="label">Ø Resonanz</div><div class="value" id="kpiRes">0 <small>/ 5</small></div><div class="delta neutral">nur Beiträge mit Messung</div></div>
+      <div class="kpi k-wirk"><div class="label">Ø Wirksamkeit</div><div class="value" id="kpiWirk">0 <small>/ 5</small></div><div class="delta neutral" id="kpiAktInfo">Ø Aktivierung: –</div></div>
+    </div>
+
+    <div class="grid even">
+      <div class="panel"><h2>Beiträge pro Monat</h2><p class="hint">Gestapelt nach Format</p><div class="chart-box"><canvas id="chartMonat"></canvas></div></div>
+      <div class="panel"><h2>Verteilung nach Format</h2><p class="hint">Anteil je Kanal</p><div class="chart-box"><canvas id="chartFormat"></canvas></div></div>
+    </div>
+
+    <div class="grid even">
+      <div class="panel"><h2>Sichtbarkeit pro Monat</h2><p class="hint">Summe der Reichweite</p><div class="chart-box"><canvas id="chartSicht"></canvas></div></div>
+      <div class="panel"><h2>Wirkungskennzahlen je Format</h2><p class="hint">Ø Resonanz · Aktivierung · Wirksamkeit (1–5)</p><div class="chart-box"><canvas id="chartWirkung"></canvas></div></div>
+    </div>
+
+    <div class="grid even">
+      <div class="panel">
+        <h2>Top-Beiträge nach Sichtbarkeit</h2><p class="hint">Reichweite &amp; Wirkungskennzahlen</p>
+        <table><thead><tr><th>Titel</th><th>Format</th><th class="num">Sicht.</th><th class="num">Res.</th><th class="num">Akt.</th><th class="num">Wirk.</th></tr></thead><tbody id="tblTop"></tbody></table>
+      </div>
+      <div class="panel">
+        <h2>Kommende Beiträge</h2><p class="hint">Ab heute, chronologisch</p>
+        <table><thead><tr><th>Datum</th><th>Titel</th><th>Format</th></tr></thead><tbody id="tblBody"></tbody></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SEITE 2: BEFRAGUNGEN ============ -->
+  <div class="page" id="p-befragung">
+    <div class="kpis">
+      <div class="kpi k-in"><div class="label">Ø Relevanz Check-in</div><div class="value" id="sbIn">0 <small>/ 5</small></div><div class="delta neutral">Erwartung vor dem Impuls</div></div>
+      <div class="kpi k-out"><div class="label">Ø Relevanz Check-out</div><div class="value" id="sbOut">0 <small>/ 5</small></div><div class="delta up" id="sbOutDelta">▲ 0 ggü. Check-in</div></div>
+      <div class="kpi k-delta"><div class="label">Ø Klarheit (Check-out)</div><div class="value" id="sbKlar">0 <small>/ 5</small></div><div class="delta neutral" id="sbUms">Ø Umsetzung: –</div></div>
+      <div class="kpi"><div class="label">Mitnahme-Quote</div><div class="value" id="sbMit">0 <small>%</small></div><div class="delta neutral" id="sbN">0 Antworten (in/out)</div></div>
+    </div>
+
+    <div class="grid even">
+      <div class="panel">
+        <h2>Relevanz: Check-in vs. Check-out</h2>
+        <p class="hint">Ø Relevanz (1–5) je Impulsvortrag · gleiche Frage vorher/nachher</p>
+        <div class="chart-box"><canvas id="chartInOut"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2>Check-out Fragenprofil (Radar)</h2>
+        <p class="hint">Ø je Frage über die gewählten Impulsvorträge</p>
+        <div class="chart-box"><canvas id="chartRadar"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid even">
+      <div class="panel">
+        <h2>Relevanz-Uplift je Impulsvortrag</h2>
+        <p class="hint">Δ = Check-out − Check-in (Wirkung des Impulses)</p>
+        <div class="chart-box"><canvas id="chartUplift"></canvas></div>
+      </div>
+      <div class="panel">
+        <h2>Antworten je Befragung</h2>
+        <p class="hint">Rücklauf Check-in vs. Check-out</p>
+        <div class="chart-box"><canvas id="chartN"></canvas></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Detailtabelle je Impulsvortrag</h2>
+      <p class="hint">Check-in Relevanz vs. Check-out (Relevanz · Klarheit · Umsetzung) · Mitnahme &amp; n</p>
+      <table>
+        <thead><tr>
+          <th>Impulsvortrag</th><th>Datum</th>
+          <th class="num">Rel. In</th><th class="num">Rel. Out</th><th class="num">Δ</th>
+          <th class="num">Klarheit</th><th class="num">Umsetzung</th><th class="num">Mitnahme</th><th class="num">n (in/out)</th>
+        </tr></thead>
+        <tbody id="sbTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer-note">HTML-Mockup · Kalender: Sichtbarkeit/Resonanz/Aktivierung/Wirksamkeit · Befragung: Check-in (Relevanz) + Check-out (Relevanz/Klarheit/Umsetzung)</div>
+</div>
+
+<script>
+// ===================== KALENDER =====================
+const FORMAT_META = {
+  "Postings":               { color:"#0072CE" },
+  "Carrera Online Artikel": { color:"#0097A7" },
+  "Veranstaltung":          { color:"#2E7D32" },
+  "Impuls":                 { color:"#6A1B9A" }
+};
+const HEUTE = new Date("2026-09-23");
+const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+
+// [start, end, title, format, category, Sichtbarkeit, Resonanz, Aktivierung, Wirksamkeit]
+const CAL = [
+  ["2026-01-11","2026-01-11","M-Community | Ankündigung Jahresauftakt","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-01-07","2026-01-07","#nsl Neues Jahr, neue Ziele","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-01-16","2026-01-16","Impuls @ Office Day (HA-Sekretariate)","Impuls","Impulsvorträge",65,null,null,null],
+  ["2026-01-20","2026-01-20","#nsl Transformationsgeschichte George","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-01-22","2026-01-22","Snack'n Learn \"Reflexion als Schlüssel\"","Veranstaltung","Veranstaltungen",285,null,null,null],
+  ["2026-01-29","2026-01-29","Snack'n Learn","Veranstaltung","Veranstaltungen",285,null,null,null],
+  ["2026-02-02","2026-02-02","Impuls @ Porsche Warm Up","Impuls","Impulsvorträge",20,null,null,null],
+  ["2026-02-10","2026-02-10","Carrera Artikel / Abschaltung LXP","Carrera Online Artikel","Schriftliche Kommunikation",214,null,null,null],
+  ["2026-02-12","2026-02-12","Impuls @ Development Center","Veranstaltung","Impulsvorträge",30,null,null,null],
+  ["2026-02-26","2026-02-26","Snack'n Learn","Veranstaltung","Veranstaltungen",285,null,null,null],
+  ["2026-03-11","2026-03-11","Impulsvortrag: Reflexion mit KI","Veranstaltung","Impulsvorträge",25,3.9,3.6,3.4],
+  ["2026-03-16","2026-03-16","\"Veränderung beginnt mit Haltung\" @ KickOff","Veranstaltung","Impulsvorträge",20,3.7,3.5,3.3],
+  ["2026-03-26","2026-03-26","Snack'n Learn \"Von der Langdistanz\"","Veranstaltung","Veranstaltungen",240,null,null,null],
+  ["2026-04-20","2026-04-20","#nsl Posting zu Mentalem Akku","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-04-30","2026-04-30","Snack'n Learn \"Planen ist gut\"","Veranstaltung","Veranstaltungen",230,null,null,null],
+  ["2026-05-21","2026-05-21","Bewerbung Panel-Talk Data & AI Symposium","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-06-10","2026-06-10","#nsl Kompetenzaufbau (Mariella)","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-06-25","2026-06-25","Snack'n Learn \"China-Kompetenz\"","Veranstaltung","Veranstaltungen",332,4.2,4.0,3.9],
+  ["2026-07-20","2026-07-20","Impuls: Wachsen in neuer Rolle @ MK-Programm","Impuls","Impulsvorträge",15,3.8,3.6,3.5],
+  ["2026-07-29","2026-07-29","Impuls: Next Level Learning","Impuls","Impulsvorträge",18,4.0,3.83,3.5],
+  ["2026-07-30","2026-07-30","Snack'n Learn \"Daten\"","Veranstaltung","Veranstaltungen",240,null,null,null],
+  ["2026-08-07","2026-08-07","Impuls: Bewusst handeln statt impulsiv reagieren","Impuls","Impulsvorträge",22,4.4,4.2,4.3],
+  ["2026-08-27","2026-08-27","Snack'n Learn (Veranstaltung)","Veranstaltung","Veranstaltungen",210,null,null,null],
+  ["2026-09-02","2026-09-02","#nsl Posting Impulskontrolle","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-09-09","2026-09-09","Impulsvortrag: Prioritäten setzen, Wirkung erzielen","Impuls","Impulsvorträge",25,4.31,3.91,4.0],
+  ["2026-10-08","2026-10-08","#nsl Kampagne Weiterbildung","Postings","Schriftliche Kommunikation",null,null,null,null],
+  ["2026-11-09","2026-11-13","Data & AI Days @ Zuffenhausen","Veranstaltung","Veranstaltungen",180,null,null,null],
+  ["2026-12-03","2026-12-03","#nsl Advents-Update","Postings","Schriftliche Kommunikation",null,null,null,null]
+].map(r => ({ start:r[0], end:r[1], title:r[2], format:r[3], category:r[4], sicht:r[5], res:r[6], akt:r[7], wirk:r[8] }));
+
+// ===================== BEFRAGUNGEN =====================
+const CO_QUESTIONS = ["Relevanz","Klarheit","Umsetzung"];
+const CO_KEY = { "Relevanz":"outRel", "Klarheit":"outKlar", "Umsetzung":"outUms" };
+
+const SURVEY = [
+  { thema:"Wachsen in neuer Rolle",                      datum:"2026-07-20", inRel:4.1, nIn:10, outRel:3.8, outKlar:3.5, outUms:4.0, nOut:10, mitnahme:0.90 },
+  { thema:"Next Level Learning",                          datum:"2026-07-29", inRel:4.1, nIn:13, outRel:4.2, outKlar:3.9, outUms:4.0, nOut:12, mitnahme:0.92 },
+  { thema:"Bewusst handeln statt impulsiv reagieren",     datum:"2026-08-07", inRel:4.0, nIn:6,  outRel:4.4, outKlar:4.6, outUms:4.5, nOut:13, mitnahme:0.95 },
+  { thema:"Prioritäten setzen und Wirkung erzielen",      datum:"2026-09-09", inRel:4.2, nIn:13, outRel:4.6, outKlar:4.7, outUms:4.8, nOut:13, mitnahme:0.96 },
+  { thema:"Klar bleiben in schwierigen Gesprächen",       datum:"2026-09-09", inRel:5.0, nIn:1,  outRel:4.5, outKlar:4.5, outUms:4.0, nOut:2,  mitnahme:1.00 },
+  { thema:"Erfolgreiche Arbeitsweisen nachhaltig etabl.", datum:"2026-09-09", inRel:4.0, nIn:1,  outRel:4.3, outKlar:4.0, outUms:4.5, nOut:2,  mitnahme:1.00 }
+];
+
+// ===================== HELPER =====================
+function quarterOf(m){ return "Q"+(Math.floor(m/3)+1); }
+function fFormat(){ return document.getElementById("fFormat").value; }
+function fZeit(){ return document.getElementById("fZeitraum").value; }
+function fThema(){ return document.getElementById("fThema").value; }
+function fFrage(){ return document.getElementById("fFrage").value; }
+function fmt(iso){ const d=new Date(iso); return String(d.getDate()).padStart(2,"0")+"."+String(d.getMonth()+1).padStart(2,"0")+"."+d.getFullYear(); }
+function rc(v){ if(v>=4.3) return "#2E7D32"; if(v>=3.8) return "#7CB342"; if(v>=3.3) return "#C9A227"; return "#E53935"; }
+function arrow(d){ if(d>0.05) return `<span class="arrow up">▲ +${d.toFixed(1)}</span>`; if(d<-0.05) return `<span class="arrow down">▼ ${d.toFixed(1)}</span>`; return `<span class="arrow flat">≈ 0</span>`; }
+function avg(arr){ const a=arr.filter(x=>x!=null); return a.length? a.reduce((s,x)=>s+x,0)/a.length : null; }
+
+// ===================== KALENDER RENDER =====================
+let chMonat, chFormat, chSicht, chWirk;
+function calRows(){
+  const f=fFormat(), z=fZeit();
+  return CAL.filter(r=>{ const m=new Date(r.start).getMonth();
+    if(f && r.format!==f) return false; if(z && quarterOf(m)!==z) return false; return true; });
+}
+function renderCalendar(){
+  const rows = calRows();
+  const kommend = rows.filter(r=>new Date(r.start)>=HEUTE).length;
+  const sichtSum = rows.reduce((s,r)=>s+(r.sicht||0),0);
+  const res = avg(rows.map(r=>r.res)), akt = avg(rows.map(r=>r.akt)), wirk = avg(rows.map(r=>r.wirk));
+
+  document.getElementById("kpiGesamt").textContent = rows.length;
+  document.getElementById("kpiKommend").textContent = kommend+" kommend (ab heute)";
+  document.getElementById("kpiSicht").textContent = sichtSum.toLocaleString("de-DE");
+  document.getElementById("kpiRes").innerHTML = (res?res.toFixed(1):"–")+' <small>/ 5</small>';
+  document.getElementById("kpiWirk").innerHTML = (wirk?wirk.toFixed(1):"–")+' <small>/ 5</small>';
+  document.getElementById("kpiAktInfo").textContent = "Ø Aktivierung: "+(akt?akt.toFixed(1):"–");
+
+  const formats = Object.keys(FORMAT_META);
+  const dsCount = formats.map(fn=>({ label:fn, backgroundColor:FORMAT_META[fn].color, borderRadius:4, borderSkipped:false,
+    data:MONATE.map((_,mi)=> rows.filter(r=>new Date(r.start).getMonth()===mi && r.format===fn).length) }));
+  if(chMonat) chMonat.destroy();
+  chMonat=new Chart(document.getElementById("chartMonat"),{type:"bar",data:{labels:MONATE,datasets:dsCount},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}}},
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,ticks:{precision:0},grid:{color:"#eef0f2"}}}}});
+
+  const counts={}; rows.forEach(r=>counts[r.format]=(counts[r.format]||0)+1);
+  const cl=Object.keys(counts);
+  if(chFormat) chFormat.destroy();
+  chFormat=new Chart(document.getElementById("chartFormat"),{type:"doughnut",
+    data:{labels:cl,datasets:[{data:cl.map(l=>counts[l]),backgroundColor:cl.map(l=>FORMAT_META[l].color),borderWidth:2,borderColor:"#fff"}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:"60%",plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}}}}});
+
+  const sichtM = MONATE.map((_,mi)=> rows.filter(r=>new Date(r.start).getMonth()===mi).reduce((s,r)=>s+(r.sicht||0),0));
+  if(chSicht) chSicht.destroy();
+  chSicht=new Chart(document.getElementById("chartSicht"),{type:"bar",data:{labels:MONATE,datasets:[{label:"Sichtbarkeit",data:sichtM,backgroundColor:"#0072CE",borderRadius:5}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{beginAtZero:true,grid:{color:"#eef0f2"}}}}});
+
+  const wf = formats.filter(fn=> rows.some(r=>r.format===fn && (r.res!=null||r.akt!=null||r.wirk!=null)));
+  const avgBy=(fn,key)=> avg(rows.filter(r=>r.format===fn).map(r=>r[key]))||0;
+  if(chWirk) chWirk.destroy();
+  chWirk=new Chart(document.getElementById("chartWirkung"),{type:"bar",
+    data:{labels:wf,datasets:[
+      {label:"Resonanz",   data:wf.map(fn=>+avgBy(fn,"res").toFixed(2)),  backgroundColor:"#0097A7", borderRadius:4},
+      {label:"Aktivierung",data:wf.map(fn=>+avgBy(fn,"akt").toFixed(2)),  backgroundColor:"#C9A227", borderRadius:4},
+      {label:"Wirksamkeit",data:wf.map(fn=>+avgBy(fn,"wirk").toFixed(2)), backgroundColor:"#2E7D32", borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}}},
+      scales:{y:{beginAtZero:true,max:5,ticks:{stepSize:1},grid:{color:"#eef0f2"}},x:{grid:{display:false}}}}});
+
+  const top=[...rows].filter(r=>r.sicht!=null).sort((a,b)=>b.sicht-a.sicht).slice(0,8);
+  const tt=document.getElementById("tblTop"); tt.innerHTML="";
+  top.forEach(r=>{ const c=FORMAT_META[r.format].color;
+    tt.insertAdjacentHTML("beforeend",`<tr>
+      <td>${r.title}</td>
+      <td><span class="badge" style="background:${c}">${r.format}</span></td>
+      <td class="num">${r.sicht.toLocaleString("de-DE")}</td>
+      <td class="num">${r.res!=null?`<span class="pill" style="background:${rc(r.res)}">${r.res.toFixed(1)}</span>`:'<span class="muted">–</span>'}</td>
+      <td class="num">${r.akt!=null?`<span class="pill" style="background:${rc(r.akt)}">${r.akt.toFixed(1)}</span>`:'<span class="muted">–</span>'}</td>
+      <td class="num">${r.wirk!=null?`<span class="pill" style="background:${rc(r.wirk)}">${r.wirk.toFixed(1)}</span>`:'<span class="muted">–</span>'}</td>
+    </tr>`); });
+
+  const komm=rows.filter(r=>new Date(r.start)>=HEUTE).sort((a,b)=>new Date(a.start)-new Date(b.start)).slice(0,8);
+  const tb=document.getElementById("tblBody"); tb.innerHTML="";
+  (komm.length?komm:rows.slice(0,8)).forEach(r=>{ const c=FORMAT_META[r.format].color;
+    tb.insertAdjacentHTML("beforeend",`<tr><td class="date-cell">${fmt(r.start)}</td><td>${r.title}</td><td><span class="badge" style="background:${c}">${r.format}</span></td></tr>`); });
+}
+
+// ===================== BEFRAGUNGEN RENDER =====================
+let chInOut, chRadar, chUplift, chN;
+function surveyRows(){ const t=fThema(); return t ? SURVEY.filter(s=>s.thema===t) : SURVEY; }
+function renderSurvey(){
+  const rows = surveyRows();
+  const wIn  = rows.reduce((s,r)=>s+r.nIn,0);
+  const wOut = rows.reduce((s,r)=>s+r.nOut,0);
+  const avgIn  = wIn? rows.reduce((s,r)=>s+r.inRel*r.nIn,0)/wIn : 0;
+  const avgOut = wOut? rows.reduce((s,r)=>s+r.outRel*r.nOut,0)/wOut : 0;
+  const avgKlar= wOut? rows.reduce((s,r)=>s+r.outKlar*r.nOut,0)/wOut : 0;
+  const avgUms = wOut? rows.reduce((s,r)=>s+r.outUms*r.nOut,0)/wOut : 0;
+  const mit = wOut? rows.reduce((s,r)=>s+r.mitnahme*r.nOut,0)/wOut : 0;
+
+  document.getElementById("sbIn").innerHTML  = avgIn.toFixed(1)+' <small>/ 5</small>';
+  document.getElementById("sbOut").innerHTML = avgOut.toFixed(1)+' <small>/ 5</small>';
+  const d=avgOut-avgIn, el=document.getElementById("sbOutDelta");
+  el.textContent=(d>=0?"▲ +":"▼ ")+d.toFixed(1)+" ggü. Check-in"; el.className="delta "+(d>=0?"up":"down");
+  document.getElementById("sbKlar").innerHTML = avgKlar.toFixed(1)+' <small>/ 5</small>';
+  document.getElementById("sbUms").textContent = "Ø Umsetzung: "+avgUms.toFixed(1);
+  document.getElementById("sbMit").innerHTML = Math.round(mit*100)+' <small>%</small>';
+  document.getElementById("sbN").textContent = wIn+" / "+wOut+" Antworten (in/out)";
+
+  const themen = rows.map(r=>r.thema);
+  const short = t => t.length>22 ? t.slice(0,20)+"…" : t;
+
+  if(chInOut) chInOut.destroy();
+  chInOut=new Chart(document.getElementById("chartInOut"),{type:"bar",
+    data:{labels:themen.map(short),datasets:[
+      {label:"Check-in Relevanz",  data:rows.map(r=>r.inRel),  backgroundColor:"#0097A7", borderRadius:4},
+      {label:"Check-out Relevanz", data:rows.map(r=>r.outRel), backgroundColor:"#2E7D32", borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},
+      tooltip:{callbacks:{title:(it)=>rows[it[0].dataIndex].thema}}},
+      scales:{y:{beginAtZero:true,max:5,ticks:{stepSize:1},grid:{color:"#eef0f2"}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  const q = (key)=> wOut? rows.reduce((s,r)=>s+r[key]*r.nOut,0)/wOut : 0;
+  if(chRadar) chRadar.destroy();
+  chRadar=new Chart(document.getElementById("chartRadar"),{type:"radar",
+    data:{labels:CO_QUESTIONS,datasets:[{label:"Check-out Ø",data:[q("outRel"),q("outKlar"),q("outUms")].map(v=>+v.toFixed(2)),
+      borderColor:"#2E7D32",backgroundColor:"rgba(46,125,50,.15)",borderWidth:2,pointRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}}},
+      scales:{r:{min:2.5,max:5,ticks:{stepSize:.5,font:{size:9}},pointLabels:{font:{size:11}}}}}});
+
+  if(chUplift) chUplift.destroy();
+  chUplift=new Chart(document.getElementById("chartUplift"),{type:"bar",
+    data:{labels:themen.map(short),datasets:[{label:"Δ Relevanz",data:rows.map(r=>+(r.outRel-r.inRel).toFixed(1)),
+      backgroundColor:rows.map(r=> (r.outRel-r.inRel)>=0 ? "#2E7D32" : "#C62828"),borderRadius:5}]},
+    options:{indexAxis:"y",responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{title:(it)=>rows[it[0].dataIndex].thema}}},
+      scales:{x:{grid:{color:"#eef0f2"},suggestedMin:-1,suggestedMax:1},y:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  if(chN) chN.destroy();
+  chN=new Chart(document.getElementById("chartN"),{type:"bar",
+    data:{labels:themen.map(short),datasets:[
+      {label:"n Check-in", data:rows.map(r=>r.nIn),  backgroundColor:"#0097A7", borderRadius:4},
+      {label:"n Check-out",data:rows.map(r=>r.nOut), backgroundColor:"#2E7D32", borderRadius:4}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}},
+      tooltip:{callbacks:{title:(it)=>rows[it[0].dataIndex].thema}}},
+      scales:{y:{beginAtZero:true,grid:{color:"#eef0f2"}},x:{grid:{display:false},ticks:{font:{size:9}}}}}});
+
+  const tb=document.getElementById("sbTable"); tb.innerHTML="";
+  rows.forEach(r=>{ const dd=r.outRel-r.inRel;
+    tb.insertAdjacentHTML("beforeend",`<tr>
+      <td>${r.thema}</td><td class="date-cell">${fmt(r.datum)}</td>
+      <td class="num"><span class="pill" style="background:${rc(r.inRel)}">${r.inRel.toFixed(1)}</span></td>
+      <td class="num"><span class="pill" style="background:${rc(r.outRel)}">${r.outRel.toFixed(1)}</span></td>
+      <td class="num">${arrow(dd)}</td>
+      <td class="num"><span class="pill" style="background:${rc(r.outKlar)}">${r.outKlar.toFixed(1)}</span></td>
+      <td class="num"><span class="pill" style="background:${rc(r.outUms)}">${r.outUms.toFixed(1)}</span></td>
+      <td class="num">${Math.round(r.mitnahme*100)}%</td>
+      <td class="num">${r.nIn}/${r.nOut}</td>
+    </tr>`); });
+}
+
+// ===================== INIT =====================
+(function init(){
+  const selT=document.getElementById("fThema");
+  SURVEY.forEach(s=>{ const o=document.createElement("option"); o.value=s.thema; o.textContent=s.thema; selT.appendChild(o); });
+  const selF=document.getElementById("fFrage");
+  CO_QUESTIONS.forEach(q=>{ const o=document.createElement("option"); o.value=q; o.textContent=q; selF.appendChild(o); });
+})();
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active"); document.getElementById(t.dataset.page).classList.add("active");
+    const survey = t.dataset.page==="p-befragung";
+    document.querySelector(".cal-only").style.display = survey ? "none" : "flex";
+    document.querySelector(".srv-only").style.display = survey ? "flex" : "none";
+  });
+});
+document.getElementById("fFormat").addEventListener("change", renderCalendar);
+document.getElementById("fZeitraum").addEventListener("change", renderCalendar);
+document.getElementById("fThema").addEventListener("change", renderSurvey);
+document.getElementById("fFrage").addEventListener("change", renderSurvey);
+
+renderCalendar();
+renderSurvey();
+</script>
+</body>
+</html>

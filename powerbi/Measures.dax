@@ -1,0 +1,166 @@
+// ============================================================================
+// DAX-Measures fuer den Kommunikationskalender
+// ----------------------------------------------------------------------------
+// ANGEPASST an deine echten Namen:
+//   Tabelle:   'Kommunikationskalender alt'
+//   Startdatum:'Event Date'
+//   Enddatum:  'End Time'
+//   Format:    'Format'
+//   Titel:     'Title'
+//
+// Verwendung in Power BI Desktop:
+//   - Empfohlen: leere Measure-Tabelle anlegen
+//       Start -> Daten eingeben -> Name "_Measures" -> Laden
+//     und alle Measures dort ablegen.
+//   - Neues Measure: Rechtsklick auf Tabelle -> "Neues Measure"
+//   - Teil VOR dem "=" ist der Measure-Name, Teil DAHINTER die Formel.
+//   - Voraussetzung: Kalender-Tabelle vorhanden + Beziehung
+//       'Kalender'[Datum]  1:n  'Kommunikationskalender alt'[Event Date]
+// ============================================================================
+
+
+// ============================================================================
+// 1) GRUNDZAHLEN
+// ============================================================================
+
+Anzahl Kommunikationen =
+COUNTROWS ( 'Kommunikationskalender alt' )
+
+
+Anzahl Formate =
+DISTINCTCOUNT ( 'Kommunikationskalender alt'[Format] )
+
+
+// ============================================================================
+// 2) ZEITBEZOGEN (nutzt die Kalender-Tabelle)
+// ============================================================================
+
+Kommunikationen YTD =
+TOTALYTD ( [Anzahl Kommunikationen], 'Kalender'[Datum] )
+
+
+Kommunikationen diesen Monat =
+CALCULATE (
+    [Anzahl Kommunikationen],
+    FILTER (
+        ALL ( 'Kalender' ),
+        'Kalender'[Jahr] = YEAR ( TODAY () )
+            && 'Kalender'[MonatNr] = MONTH ( TODAY () )
+    )
+)
+
+
+Kommunikationen Vormonat =
+CALCULATE (
+    [Anzahl Kommunikationen],
+    FILTER (
+        ALL ( 'Kalender' ),
+        'Kalender'[Jahr] = YEAR ( EDATE ( TODAY (), -1 ) )
+            && 'Kalender'[MonatNr] = MONTH ( EDATE ( TODAY (), -1 ) )
+    )
+)
+
+
+Veraenderung ggue Vormonat =
+[Kommunikationen diesen Monat] - [Kommunikationen Vormonat]
+
+
+Veraenderung ggue Vormonat % =
+VAR Aktuell = [Kommunikationen diesen Monat]
+VAR Vorher  = [Kommunikationen Vormonat]
+RETURN
+    IF ( Vorher = 0, BLANK (), DIVIDE ( Aktuell - Vorher, Vorher ) )
+
+
+Kommunikationen naechste 30 Tage =
+CALCULATE (
+    [Anzahl Kommunikationen],
+    FILTER (
+        ALL ( 'Kalender' ),
+        'Kalender'[Datum] >= TODAY ()
+            && 'Kalender'[Datum] <= TODAY () + 30
+    )
+)
+
+
+Kommunikationen kommende (ab heute) =
+CALCULATE (
+    [Anzahl Kommunikationen],
+    FILTER ( ALL ( 'Kalender' ), 'Kalender'[Datum] >= TODAY () )
+)
+
+
+Kommunikationen vergangen =
+CALCULATE (
+    [Anzahl Kommunikationen],
+    FILTER ( ALL ( 'Kalender' ), 'Kalender'[Datum] < TODAY () )
+)
+
+
+// ============================================================================
+// 3) FORMAT-AUSWERTUNGEN
+// ============================================================================
+
+Haeufigstes Format =
+VAR t =
+    ADDCOLUMNS (
+        VALUES ( 'Kommunikationskalender alt'[Format] ),
+        "@Anzahl", [Anzahl Kommunikationen]
+    )
+RETURN
+    MAXX ( TOPN ( 1, t, [@Anzahl], DESC ), 'Kommunikationskalender alt'[Format] )
+
+
+Anteil je Format % =
+DIVIDE (
+    [Anzahl Kommunikationen],
+    CALCULATE ( [Anzahl Kommunikationen], ALL ( 'Kommunikationskalender alt'[Format] ) )
+)
+
+
+// ============================================================================
+// 4) TEXTE FUER KARTEN & DYNAMISCHE TITEL
+// ============================================================================
+
+Naechste Kommunikation =
+VAR NaechstesDatum =
+    CALCULATE (
+        MIN ( 'Kommunikationskalender alt'[Event Date] ),
+        FILTER (
+            'Kommunikationskalender alt',
+            'Kommunikationskalender alt'[Event Date] >= TODAY ()
+        )
+    )
+VAR Titel =
+    CALCULATE (
+        SELECTEDVALUE ( 'Kommunikationskalender alt'[Title] ),
+        'Kommunikationskalender alt'[Event Date] = NaechstesDatum
+    )
+RETURN
+    IF (
+        ISBLANK ( NaechstesDatum ),
+        "Keine geplante Kommunikation",
+        FORMAT ( NaechstesDatum, "DD.MM.YYYY" ) & "  –  " & Titel
+    )
+
+
+Titel dynamisch =
+"Kommunikationskalender  |  Stand: " & FORMAT ( TODAY (), "DD.MM.YYYY" )
+
+
+// ============================================================================
+// 5) AMPEL-FARBE NACH FORMAT (optional, fuer bedingte Formatierung)
+//    Tabelle/Matrix -> Spalte -> Bedingte Formatierung ->
+//    Hintergrundfarbe -> "Feldwert" -> dieses Measure waehlen.
+//    Passe die Format-Bezeichnungen an deine echten Werte an!
+// ============================================================================
+
+Farbe Format =
+SWITCH (
+    SELECTEDVALUE ( 'Kommunikationskalender alt'[Format] ),
+    "Newsletter",   "#0072CE",
+    "Event",        "#2E7D32",
+    "Social Media", "#F9A825",
+    "Mailing",      "#6A1B9A",
+    "#9E9E9E"       // Standard / unbekannt
+)

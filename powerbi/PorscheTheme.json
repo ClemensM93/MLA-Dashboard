@@ -1,0 +1,43 @@
+{
+  "name": "Porsche Akademie",
+  "dataColors": [
+    "#0072CE",
+    "#0097A7",
+    "#2E7D32",
+    "#6A1B9A",
+    "#C9A227",
+    "#C62828",
+    "#1A1A1A",
+    "#7CB342"
+  ],
+  "background": "#F4F5F7",
+  "foreground": "#1A1A1A",
+  "tableAccent": "#0072CE",
+  "good": "#2E7D32",
+  "neutral": "#C9A227",
+  "bad": "#C62828",
+  "maximum": "#0072CE",
+  "center": "#C9A227",
+  "minimum": "#C62828",
+  "textClasses": {
+    "title": { "fontFace": "Segoe UI Semibold", "color": "#1A1A1A" },
+    "header": { "fontFace": "Segoe UI Semibold", "color": "#1A1A1A" },
+    "label": { "fontFace": "Segoe UI", "color": "#1A1A1A" },
+    "callout": { "fontFace": "Segoe UI", "color": "#0072CE" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [{ "show": true, "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#E6E8EB" } }, "radius": 12 }],
+        "dropShadow": [{ "show": true, "preset": "Bottom" }],
+        "title": [{ "show": true, "fontColor": { "solid": { "color": "#1A1A1A" } }, "fontSize": 12 }]
+      }
+    },
+    "page": {
+      "*": {
+        "background": [{ "color": { "solid": { "color": "#F4F5F7" } }, "transparency": 0 }]
+      }
+    }
+  }
+}

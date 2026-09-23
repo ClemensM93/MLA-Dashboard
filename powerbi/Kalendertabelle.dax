@@ -1,0 +1,45 @@
+// ============================================================================
+// Kalendertabelle (Date-Dimension) fuer Zeit-Intelligenz
+// ----------------------------------------------------------------------------
+// Verwendung:
+//   1. Power BI Desktop -> Modellierung -> Neue Tabelle
+//   2. Diesen gesamten Code einfuegen -> Enter
+//   3. Danach: Modellansicht -> Beziehung ziehen von
+//        'Kalender'[Datum]  ->  'Kommunikationskalender alt'[Event Date]
+//      (1:n, Richtung: einfach, Kalender ist die 1-Seite)
+//   4. Kalender-Tabelle als Datumstabelle markieren:
+//        Tabellentools -> "Als Datumstabelle markieren" -> Spalte [Datum]
+//
+// Passe Start-/Endjahr bei Bedarf an (MinJahr / MaxJahr).
+// ============================================================================
+Kalender =
+VAR MinJahr = 2024
+VAR MaxJahr = 2027
+VAR StartDatum = DATE ( MinJahr, 1, 1 )
+VAR EndDatum   = DATE ( MaxJahr, 12, 31 )
+RETURN
+ADDCOLUMNS (
+    CALENDAR ( StartDatum, EndDatum ),
+    "Jahr",            YEAR ( [Date] ),
+    "MonatNr",         MONTH ( [Date] ),
+    "Monat",           FORMAT ( [Date], "MMM", "de-DE" ),
+    "MonatLang",       FORMAT ( [Date], "MMMM", "de-DE" ),
+    "JahrMonat",       FORMAT ( [Date], "YYYY-MM" ),
+    "JahrMonatSort",   YEAR ( [Date] ) * 100 + MONTH ( [Date] ),
+    "Quartal",         "Q" & FORMAT ( [Date], "Q" ),
+    "JahrQuartal",     FORMAT ( [Date], "YYYY" ) & " Q" & FORMAT ( [Date], "Q" ),
+    "KW",              WEEKNUM ( [Date], 2 ),
+    "Wochentag",       FORMAT ( [Date], "ddd", "de-DE" ),
+    "WochentagNr",     WEEKDAY ( [Date], 2 ),
+    "TagImMonat",      DAY ( [Date] ),
+    "IstHeute",        IF ( [Date] = TODAY (), "Heute", "" ),
+    "IstVergangenheit", IF ( [Date] < TODAY (), TRUE (), FALSE () )
+)
+
+// ----------------------------------------------------------------------------
+// WICHTIG nach dem Anlegen:
+//   - Spalte [Monat] nach Spalte [MonatNr] sortieren
+//       (Spalte [Monat] markieren -> Spaltentools -> "Nach Spalte sortieren" -> MonatNr)
+//   - Spalte [JahrMonat] nach [JahrMonatSort] sortieren
+//   - Spalte [Wochentag] nach [WochentagNr] sortieren
+// ----------------------------------------------------------------------------

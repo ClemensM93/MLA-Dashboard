@@ -1,0 +1,33 @@
+The contents of the file /akademie-dashboard/akademie-dashboard/data/kommunikationskalender.xlsx cannot be generated as it is an Excel file and requires specific data formatting. However, I can provide a description of how the data should be structured within the Excel file based on your project specifications.
+
+The Excel file should contain the following sheets and data structure:
+
+1. **Query Sheet**:
+   - Columns: 
+     - Event Date
+     - Format (e.g., Workshop, Seminar, Webinar)
+     - Title of the Event
+     - Description
+     - Location
+     - Number of Participants
+     - Additional Notes
+
+2. **Check-In Sheet**:
+   - Columns:
+     - Event Date
+     - Format
+     - Participant Name
+     - Feedback Score (1-5)
+     - Comments
+
+3. **Check-Out Sheet**:
+   - Columns:
+     - Event Date
+     - Format
+     - Participant Name
+     - Feedback Score (1-5)
+     - Comments
+
+Each sheet should be populated with relevant data extracted from the SharePoint site, ensuring that all formats of the academy are represented. The data should be organized in a way that allows for easy filtering and processing based on event dates and formats.
+
+If you need further assistance with specific data or formatting within the Excel file, please provide that information, and I can help you create a more detailed structure or example data.

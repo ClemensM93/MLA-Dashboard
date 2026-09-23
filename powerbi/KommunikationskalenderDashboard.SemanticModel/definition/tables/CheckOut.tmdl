@@ -1,0 +1,67 @@
+table CheckOut
+
+	measure 'Umsetzung Durchschnitt' = AVERAGE ( CheckOut[Umsetzung] )
+		formatString: 0.0
+
+	measure 'Gefallen Durchschnitt' = AVERAGE ( CheckOut[Gefallen] )
+		formatString: 0.0
+
+	measure 'Weiterempfehlung Durchschnitt' = AVERAGE ( CheckOut[Weiterempfehlung] )
+		formatString: 0.0
+
+	measure 'Antworten Check-out' = COUNTROWS ( CheckOut )
+		formatString: 0
+
+	column Titel
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Titel
+
+	column Umsetzung
+		dataType: double
+		formatString: 0.0
+		summarizeBy: average
+		sourceColumn: Umsetzung
+
+	column Grund
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Grund
+
+	column Gefallen
+		dataType: double
+		formatString: 0.0
+		summarizeBy: average
+		sourceColumn: Gefallen
+
+	column Weiterempfehlung
+		dataType: double
+		formatString: 0.0
+		summarizeBy: average
+		sourceColumn: Weiterempfehlung
+
+	partition CheckOut = m
+		mode: import
+		source =
+				let
+				SiteUrl = "https://porsche.sharepoint.com/sites/TeamsMEE150",
+				Quelle = SharePoint.Tables(SiteUrl, [Implementation = "2.0", ViewMode = "All"]),
+				Liste = Quelle{[Title = "CheckOut Impuls Relevanz"]}[Items],
+				// Lange Fragen-Spaltennamen auf kurze Modellnamen umbenennen.
+				// Falls die realen (internen) Spaltennamen abweichen, hier anpassen.
+				Umbenannt = Table.RenameColumns(
+					Liste,
+					{
+						{"Wie wahrscheinlich ist es, dass du das Vorhaben in den nächsten zwei Wochen umsetzt?", "Umsetzung"},
+						{"Was ist der Grund, weshalb du dir nichts vornimmst?", "Grund"},
+						{"Wie hat dir der Impuls gefallen?", "Gefallen"},
+						{"Wie hoch ist die Wahrscheinlichkeit, dass du den Impuls weiterempfiehlst?", "Weiterempfehlung"}
+					},
+					MissingField.Ignore
+				),
+				Behalten = Table.SelectColumns(Umbenannt, {"Titel", "Umsetzung", "Grund", "Gefallen", "Weiterempfehlung"}, MissingField.Ignore),
+				TypDefs = List.Select({{"Umsetzung", type number}, {"Gefallen", type number}, {"Weiterempfehlung", type number}, {"Grund", type text}, {"Titel", type text}}, each Table.HasColumns(Behalten, {_{0}})),
+				Typen = Table.TransformColumnTypes(Behalten, TypDefs)
+				in
+				Typen
+

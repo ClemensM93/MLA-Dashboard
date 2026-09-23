@@ -1,0 +1,8 @@
+relationship Rel_Kalender_EventDatum
+	fromColumn: 'Kommunikationskalender alt'.EventDatum
+	toColumn: Kalender.Datum
+
+relationship Rel_Kalender_CheckInDatum
+	fromColumn: CheckIn.Datum
+	toColumn: Kalender.Datum
+

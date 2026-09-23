@@ -1,0 +1,58 @@
+table CheckIn
+
+	measure 'Relevanz Check-in' = AVERAGE ( CheckIn[Relevanz] )
+		formatString: 0.0
+
+	measure 'Antworten Check-in' = COUNTROWS ( CheckIn )
+		formatString: 0
+
+	measure 'Titel Befragung' = "Impuls-Befragungen  |  Check-in & Check-out"
+
+	column Titel
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Titel
+
+	column Impulsvortrag
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Impulsvortrag
+
+	column Datum
+		dataType: dateTime
+		formatString: General Date
+		summarizeBy: none
+		sourceColumn: Datum
+
+	column Relevanz
+		dataType: double
+		formatString: 0.0
+		summarizeBy: average
+		sourceColumn: Relevanz
+
+	partition CheckIn = m
+		mode: import
+		source =
+				let
+				SiteUrl = "https://porsche.sharepoint.com/sites/TeamsMEE150",
+				Quelle = SharePoint.Tables(SiteUrl, [Implementation = "2.0", ViewMode = "All"]),
+				Liste = Quelle{[Title = "CheckIn Impuls Relevanz"]}[Items],
+				// Lange Fragen-Spaltennamen auf kurze Modellnamen umbenennen.
+				// Falls die realen (internen) Spaltennamen abweichen, hier anpassen.
+				Umbenannt = Table.RenameColumns(
+					Liste,
+					{
+						{"Auf welchen Impulsvortrag beziehen sich deine Angaben?", "Impulsvortrag"},
+						{"An welchem Datum findet der Impulsvortrag statt?", "Datum"},
+						{"Wie relevant schätzt du das Thema aktuell für dich ein?", "Relevanz"}
+					},
+					MissingField.Ignore
+				),
+				Behalten = Table.SelectColumns(Umbenannt, {"Titel", "Impulsvortrag", "Datum", "Relevanz"}, MissingField.Ignore),
+				TypDefs = List.Select({{"Datum", type datetime}, {"Relevanz", type number}, {"Impulsvortrag", type text}, {"Titel", type text}}, each Table.HasColumns(Behalten, {_{0}})),
+				Typen = Table.TransformColumnTypes(Behalten, TypDefs),
+				// Datum auf Mitternacht normalisieren, damit die Beziehung zu Kalender[Datum] greift.
+				DatumNormalisiert = if Table.HasColumns(Typen, "Datum") then Table.TransformColumns(Typen, {{"Datum", each if _ = null then null else DateTime.From(Date.From(_)), type datetime}}) else Typen
+				in
+				DatumNormalisiert
+

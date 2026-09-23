@@ -1,0 +1,15 @@
+model Model
+	culture: de-DE
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: de-DE
+
+annotation PBI_QueryOrder = ["Kommunikationskalender alt", "CheckIn", "CheckOut"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table Kalender
+ref table 'Kommunikationskalender alt'
+ref table CheckIn
+ref table CheckOut
+

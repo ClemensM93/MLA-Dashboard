@@ -1,0 +1,103 @@
+table Kalender
+	dataCategory: Time
+
+	column Datum
+		dataType: dateTime
+		isUnique
+		formatString: Long Date
+		summarizeBy: none
+		sourceColumn: [Date]
+
+	column Jahr
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: [Jahr]
+
+	column MonatNr
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: [MonatNr]
+
+	column Monat
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [Monat]
+		sortByColumn: MonatNr
+
+	column JahrMonat
+		dataType: string
+		summarizeBy: none
+		sourceColumn: [JahrMonat]
+		sortByColumn: JahrMonatSort
+
+	column MonatLang
+		dataType: string
+		lineageTag: 150df3c1-8ee6-4cd9-961f-12a7fc0f8fe8
+		summarizeBy: none
+		sourceColumn: [MonatLang]
+
+	column JahrMonatSort
+		dataType: int64
+		formatString: 0
+		lineageTag: ee938896-e63e-43c5-ae0f-f59e5883affc
+		summarizeBy: none
+		sourceColumn: [JahrMonatSort]
+
+	column Quartal
+		dataType: string
+		lineageTag: 12a85ba4-e00d-4bc4-a002-fe0a183c541b
+		summarizeBy: none
+		sourceColumn: [Quartal]
+
+	column JahrQuartal
+		dataType: string
+		lineageTag: 53f774a2-a85d-4ed2-96c6-a38c018e247c
+		summarizeBy: none
+		sourceColumn: [JahrQuartal]
+
+	column KW
+		dataType: int64
+		formatString: 0
+		lineageTag: dcf44ae9-807d-447c-8d3b-91352e5a0e27
+		summarizeBy: none
+		sourceColumn: [KW]
+
+	column WochentagNr
+		dataType: int64
+		formatString: 0
+		lineageTag: 578f4885-900a-40dd-a5c5-6021bbc0ae7b
+		summarizeBy: none
+		sourceColumn: [WochentagNr]
+
+	column Wochentag
+		dataType: string
+		lineageTag: f56651f6-77af-4120-9868-5278c090445c
+		summarizeBy: none
+		sourceColumn: [Wochentag]
+		sortByColumn: WochentagNr
+
+	column TagImMonat
+		dataType: int64
+		formatString: 0
+		lineageTag: 42d1b736-f58b-46c3-9e63-f0f3277b0365
+		summarizeBy: none
+		sourceColumn: [TagImMonat]
+
+	column IstHeute
+		dataType: string
+		lineageTag: f83dc0a4-e0ca-4ac3-871c-19f982c07ba2
+		summarizeBy: none
+		sourceColumn: [IstHeute]
+
+	column IstVergangenheit
+		dataType: boolean
+		lineageTag: 07757f52-c8c6-406a-b135-d40b0ceb3b14
+		summarizeBy: none
+		sourceColumn: [IstVergangenheit]
+
+	partition Kalender = calculated
+		mode: import
+		source = ADDCOLUMNS ( CALENDAR ( DATE ( 2024, 1, 1 ), DATE ( 2027, 12, 31 ) ), "Jahr", YEAR ( [Date] ), "MonatNr", MONTH ( [Date] ), "Monat", FORMAT ( [Date], "MMM", "de-DE" ), "MonatLang", FORMAT ( [Date], "MMMM", "de-DE" ), "JahrMonat", FORMAT ( [Date], "YYYY-MM" ), "JahrMonatSort", YEAR ( [Date] ) * 100 + MONTH ( [Date] ), "Quartal", "Q" & FORMAT ( [Date], "Q" ), "JahrQuartal", FORMAT ( [Date], "YYYY" ) & " Q" & FORMAT ( [Date], "Q" ), "KW", WEEKNUM ( [Date], 2 ), "Wochentag", FORMAT ( [Date], "ddd", "de-DE" ), "WochentagNr", WEEKDAY ( [Date], 2 ), "TagImMonat", DAY ( [Date] ), "IstHeute", IF ( [Date] = TODAY (), "Heute", "" ), "IstVergangenheit", IF ( [Date] < TODAY (), TRUE (), FALSE () ) )
+

@@ -1,0 +1,11 @@
+DATABASE_URI = "sqlite:///akademie_dashboard.db"
+DEBUG = True
+SECRET_KEY = "your_secret_key_here"
+EXCEL_FILE_PATH = "data/kommunikationskalender.xlsx"
+EVENT_DATE_COLUMN = "Datum der Veranstaltung"
+FORMAT_COLUMN = "Format"
+CHECK_IN_COLUMN = "Check-In"
+CHECK_OUT_COLUMN = "Check-Out"
+SURVEY_COLUMNS = [CHECK_IN_COLUMN, CHECK_OUT_COLUMN]
+FILTERED_FORMATS = ["Format1", "Format2", "Format3"]  # Add your specific formats here
+DATE_FORMAT = "%Y-%m-%d"  # Adjust the date format as needed
