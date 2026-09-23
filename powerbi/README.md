@@ -156,3 +156,24 @@ importieren: Bericht öffnen → **Ansicht → Designs → Design durchsuchen** 
 `PorscheTheme.json` wählen. Grundlayout und Titel sind bereits im Bericht
 hinterlegt.
 
+---
+
+## 7. Git-Repository & Workflow
+
+Das Projekt liegt auf GitHub: **https://github.com/ClemensM93/MLA-Dashboard**
+(Branch `main`, Repo-Root = Ordner `akademie-dashboard`, der `powerbi`-Ordner
+enthält das PBIP-Projekt).
+
+Änderungen ablegen und hochladen:
+
+```powershell
+cd "…/akademie-dashboard"
+git add -A
+git commit -m "Kurzbeschreibung der Änderung"
+git push
+```
+
+Im **Power BI / Fabric Service** danach im Arbeitsbereich unter
+**Git integration → Update all** die Änderungen übernehmen.
+
+
